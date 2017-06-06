@@ -1,0 +1,123 @@
+reverseLine :: IO String
+reverseLine = do line <- getLine   
+                 return (reverse line)
+
+how to combine reverse and getLine?
+  reverse :: [a] -> [a]
+  getLine :: IO String
+
+  fmapIO f p = do x <- p
+                  return (f x)
+
+  reverseLine = fmapIO reverse getLine
+
+  what is the type of fmapIO?
+  fmapIO :: ([Char] -> [Char]) -> IO [Char] -> IO [Char]
+
+  how about "fmapIO length getLine"?
+  fmapIO :: ([Char] -> Int] -> IO [Char] -> IO Int
+
+  fmapIO :: (a -> b) -> IO a -> IO b
+
+--------------
+generalize for IO: functors
+
+class Functor f where  
+    fmap :: (a -> b) -> f a -> f b
+
+infix operator for fmap: <$>
+--------------
+
+IO is already a functor:
+  reverseLine = fmap reverse getLine -- OR: reverse <$> getLine
+
+data Box a = Box a
+             deriving Show
+
+fmap (+2) (Box 3) -- wanted: Box 5, but not an instance of Functor
+
+instance Functor Box where
+    -- fmap :: (a -> b) -> Box a -> Box b
+    fmap f (Box x) = Box (f x)
+
+fmap (+2) (Box 3) -- Box 5
+also: (+2) <$> Box 3
+
+similarly for Maybe (hide it from Prelude):
+
+data Maybe a = Nothing | Just a
+               deriving Show
+
+instance Functor Maybe where
+    -- fmap :: (a -> b) -> Maybe a -> Maybe b
+    fmap f (Just x) = Just (f x)
+    fmap f Nothing  = Nothing
+
+laws:
+  fmap id = id
+
+  example for Maybe:
+  -- fmap id (Just 3) = Just 3  = id (Just 3)
+  -- fmap id Nothing  = Nothing = id (Nothing)
+
+  fmap (f . g) = fmap f . fmap g
+  -- fmap (f . g) Nothing = Nothing
+  -- (fmap f . fmap g) Nothing = fmap f (fmap g Nothing)
+  --                           = fmap f Nothing
+  --                           = Nothing
+
+  -- fmap (f . g) (Just x) = Just ((f . g) x)
+  --                       = Just (f (g x))
+  -- (fmap f . fmap g) (Just x) = fmap f (fmap g (Just x))
+  --                            = fmap f (Just (g x))
+  --                            = Just (f (g x))
+
+-----------------------
+what if the function is also boxed?
+
+Box (+2) combine Box 3: get Box 5
+
+applicative functors
+
+class (Functor f) => Applicative f where  
+    (<*>) :: f (a -> b) -> f a -> f b
+    pure  :: a -> f a  
+
+Box (+2) <*> Box 3 -- wanted Box 5, but not an instance of Applicative
+
+instance Applicative Box where
+    -- (<*>) :: Box (a -> b) -> Box a -> Box b
+    -- (<*>) (Box f) (Box x) = Box (f x)
+    Box f <*> Box x = Box (f x)
+    -- Box f <*> v = fmap f v
+
+    -- pure :: a -> Box a
+    pure x = Box x
+    -- pure = Box
+
+Box (+2) <*> Box 3 -- Box 5
+
+add two boxed values Box 2 and Box 3, get Box 5
+
+(+) <$> Box 2             -- Box (+2)
+((+) <$> Box 2) <*> Box 3 -- Box 5
+
+addBoxed :: Num a => Box a -> Box a -> Box a
+addBoxed v1 v2 = ((+) <$> v1) <*> v2
+
+instance Applicative Maybe where
+    Just f  <*> v = fmap f v
+    Nothing <*> _ = Nothing
+
+    pure = Just
+
+add :: (Num a, Applicative f) => f a -> f a -> f a
+add v1 v2 = (+) <$> v1 <*> v2
+
+general function for adding 2 of that monad:
+
+add2 :: (Num a, Applicative f) => f a -> f a
+add2 = add (pure 2)
+
+add2 (Box 5) -- Box 7
+add2 (Just 5) -- Just 7

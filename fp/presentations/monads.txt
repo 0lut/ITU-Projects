@@ -1,0 +1,87 @@
+readUserFile :: IO String
+readUserFile = do filename <- getLine
+                  readFile filename
+
+how to combine getLine and readFile?
+  getLine :: IO String
+  readFile :: String -> IO String
+
+  bindIO p q = do x <- p
+                  q x
+
+  readUserFile = bindIO getLine readFile
+
+  what is the type of bindIO?
+  bindIO :: IO String -> (String -> IO String) -> IO String
+
+  how about "bindIO readUserFile putStr"?
+  bindIO :: IO String -> (String -> IO ()) -> IO ()
+
+  bindIO :: IO a -> (a -> IO b) -> IO b
+
+  catUserFile = bindIO (bindIO getLine readFile) putStr
+
+--------------
+generalize for IO: monads
+
+class Monad m where
+    (>>=) :: m a -> (a -> m b) -> m b
+
+    return :: a -> m a
+--------------
+
+IO is already a monad:
+  readUserFile = getLine >>= readFile
+  catUserFile = getLine >>= readFile >>= putStr
+
+instance Monad Box where
+    -- (>>=) :: Box a -> (a -> Box b) -> Box b
+    -- (>>=) (Box x) f = f x
+    Box x >>= f = f x
+
+    -- return :: a -> Box a
+    return x = Box x
+    -- return = Box
+
+twiceBoxed :: Num a => a -> Box a
+twiceBoxed x = Box (x * 2)
+
+Box 5 >>= twiceBoxed                 -- Box 10
+Box 5 >>= twiceBoxed >>= twiceBoxed  -- Box 20
+Box 5 >>= twiceBoxed >>= twiceBoxed  -- Box 40
+
+instance Monad Maybe where
+  Nothing >>= f = Nothing
+  Just x  >>= f = f x
+
+  return x = Just x
+
+generalize twice for any monad:
+
+twice :: (Num a, Monad m) => a -> m a
+twice x = return (x * 2)
+
+Box 5 >>= twice    -- Box 10
+Just 5 >>= twice   -- Just 10
+
+-------------------
+use monad for logging:
+
+twiceLogged :: (Num a, Show a) => a -> IO a
+twiceLogged x = do let x' = x * 2
+                   putStrLn ("calculating: 2*" ++ show x ++ "=" ++ show x')
+                   return x'
+
+return 5 >>= twiceLogged >>= twiceLogged >>= twiceLogged
+
+standard library monad for logging: Control.Monad.Writer
+
+  import Control.Monad.Writer
+
+  twiceWriter :: (Num a, Show a) => a -> Writer String a
+  twiceWriter x = do let x' = x * 2
+                     tell ("calculating: 2*" ++ show x ++ "=" ++ show x' ++ "\n")
+                     return x'
+
+return 5 >>= twiceWriter >>= twiceWriter >>= twiceWriter
+runWriter $ return 5 >>= twiceWriter >>= twiceWriter >>= twiceWriter

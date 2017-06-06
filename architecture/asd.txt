@@ -1,0 +1,16 @@
+ ROW 1
+
+Memory access(45ns) + register(5ns)
+l
+ROW2
+
+shifter(10s) + Not gate(10ns) + adder(15ns) + writing to register(5ns)
+-2A
+
+Row3
+
+multipilier(45ns) + writing to register(5ns)
+
+row4
+
+multiplier(45ns ) + writing to register(5ns)

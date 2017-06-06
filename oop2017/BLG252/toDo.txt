@@ -1,0 +1,38 @@
+ 1)display fonksiyonu neden head'i değiştiriyor? headin temp bir değere atanıp temp değerin nextinin alınması gerekiyordu(kod muhtemelen bundan ötürü sapıtıyordu)
+ 
+ 2)constructorlar olmadığı için iç içe class üretirken çok büyük sıkıntılar oluyor, atamalar şaşabiliyor
+ 
+ ***AdderRemover'ın constructorunun olmaması ölümcül bir hata, head ve tail tanımlıyorsun fakat ilk değerleri belli değil
+ Classlarındaki memberlar için constructor tanımlamalısın
+ 
+  3)bazı yerlerde örneğin remove fonksiyonlarında ilk önce headin null olup olmadığını kontrol etmen gerekirken, gidip headin nextine/previousuna bakmışsın bu bir segmentation fault sebebidir
+(düzeltmediğim yerler olabilir, referans olması için FAFR'ye bak şuan onun sorunsuz çalışması gerekiyor)
+
+ 4)node'da prev ve next private tanımlanıp ona göre bir yapı oluşturulmalıydı, bu tarz pointerları public yapmak sağlıklı değil
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ ARTL ARTF'ye ve ilişkin classlara constructor yazmalısın
+ 
+ 
+ 
+ 
+ 
+Yapılabilecek Geliştirmeler
+
+1) firstAdd class'ı(tek fonksiyonu başa eklemek olacak) tanımlanıp FA LR/FR classlarına inherit edilebilirdi. 
+
+2) aynı şeylerin hepsi removelast/first falan hepsi için geçerli. eğer böyle yapılsaydı FAFR FALR LAFR LALR classlarının içi bomboş olacaktı sadece inherit ettiğimiz classlar yer alacaktı.(bunun bir adı da vardı da object oriented design olarak, onu unuttum) ama uğraşma artık, sadece bil diye söylüyorum, zaten onu üç beş kişi yapar önemi yok.
+
+3) ALLAH AŞKINA ŞU FONKSİYONLARI CLASS DISINDA TANIMLA KÖR ETDİN XD
+
+
+
+Mehmet Tahir Sandıkkaya
+sandikkaya@itu.edu.tr 
+
